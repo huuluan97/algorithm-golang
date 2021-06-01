@@ -1,8 +1,11 @@
 package rsa
 
 import (
+	"fmt"
 	"math"
 	"math/rand"
+	"strconv"
+	"strings"
 )
 
 func prime(limit int) (primes []int) {
@@ -36,7 +39,6 @@ func prime(limit int) (primes []int) {
 }
 
 func generatePrimes(limit int) int {
-
 	/*
 		generate primes by factoring
 		relies on the 30k+i, though better formulae exist
@@ -61,3 +63,124 @@ func generatePrimes(limit int) int {
 		}
 	}
 }
+
+func lcm(a, b int) int {
+	return int((a * b) / gcd(a, b))
+}
+
+func gcd(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+func modularMultiplicativeInverse(e, delta int) int {
+	e = e % delta
+	for i := 1 ; i < delta; i++ {
+		if (i*e)%delta == 1 {
+			return i
+		}
+	}
+	return 0
+}
+
+func modularExponentiation(b, e, mod int) int {
+	if mod == 1 {
+		return 0
+	}
+
+	r := 1
+	b = b % mod
+	for e > 0 {
+		if e%2 == 1 {
+			r = (r*b) % mod
+		}
+		e = e >> 1
+		b = (b * b) % mod
+	}
+	return r
+}
+
+func EncryptRSA(message []int, e, n int) []int {
+	var ciphertext []int
+	for _, v := range message {
+		ciphertext = append(ciphertext, modularExponentiation(v, e, n))
+	}
+	return ciphertext
+}
+
+func DecryptRSA(ciphertext []int, d, n int) []int {
+	var message []int
+	for _, v := range ciphertext {
+		message = append(message, modularExponentiation(v, d, n))
+	}
+	return message
+}
+
+func toASCII(slice []rune) []int {
+	var converted []int
+	for _, v := range slice {
+		converted = append(converted, int(v))
+	}
+	return converted
+}
+
+func ToRune(slice []int) string {
+	var str strings.Builder
+	for i, v := range slice {
+		if i != len(slice)-1 {
+			str.WriteString(fmt.Sprintf("%d ", v))
+		} else {
+			str.WriteString(fmt.Sprint(v))
+		}
+
+	}
+	return str.String()
+}
+
+func Compare(str string) []int {
+	a := strings.Split(str, " ")
+	fmt.Printf("%v", a)
+	var b []int
+	for _, v := range a {
+		temp, _ := strconv.Atoi(v)
+		b = append(b, temp)
+	}
+	return b
+}
+
+// func handleRSACipher() {
+// 	rand.Seed(time.Now().UTC().UnixNano())
+// 	bits := 17
+
+// 	p := generatePrimes(1 << bits)
+// 	q := generatePrimes(1 << bits)
+// 	for p == q {
+// 		q = generatePrimes(1 << bits)
+// 	}
+
+// 	n := p * q
+
+// 	delta := lcm(p-1, q-1)
+
+// 	e := generatePrimes(delta)
+// 	d := modularMultiplicativeInverse(e, delta)
+
+// 	fmt.Printf("%v \n%v \n%v \n%v\n", p, q, e, d)
+
+// 	str := "I think RSA is really great"
+// 	message := []rune(str)
+// 	asciiSlice := toASCII(message)
+
+// 	fmt.Printf("asciiSlice : %v \n", asciiSlice)
+// 	encrypted := encryptRSA(asciiSlice, e, n)
+// 	fmt.Printf("encrypted : %v \n", encrypted)
+// 	decrypted := decryptRSA(encrypted, d, n)
+// 	fmt.Printf("decrypted : %v \n", decrypted)
+// 	fmt.Printf("cleartext : %v \n", toRune(decrypted))
+// 	//switched to atom
+
+// }
